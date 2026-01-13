@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课堂幸运抽奖 - 随机点名</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: clamp(24px, 5vw, 36px);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: clamp(14px, 3vw, 18px);
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: clamp(20px, 5vw, 40px);
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: clamp(14px, 3vw, 16px);
+            width: 100%;
+            text-align: center;
+        }
+
+        .file-upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: clamp(14px, 3vw, 16px);
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .student-count {
+            margin-top: 10px;
+            color: #666;
+            font-size: clamp(12px, 2.5vw, 14px);
+        }
+
+        .lottery-area {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: clamp(30px, 6vw, 50px);
+            margin-bottom: 30px;
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lottery-display {
+            font-size: clamp(32px, 8vw, 72px);
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .lottery-subtitle {
+            font-size: clamp(16px, 4vw, 24px);
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: clamp(15px, 3vw, 20px) clamp(40px, 8vw, 60px);
+            border: none;
+            border-radius: 50px;
+            font-size: clamp(16px, 4vw, 20px);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .start-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .lottery-area {
+                min-height: 250px;
+                padding: 20px;
+            }
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: clamp(12px, 2.5vw, 14px);
+            color: #666;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 课堂幸运抽奖 🎉</h1>
+            <p>公平公正的随机点名系统</p>
+        </div>
+
+        <div class="content">
+            <div class="instructions">
+                <strong>📝 使用说明：</strong>
+                <ul>
+                    <li>方式一：上传包含学员名单的文本文件（每行一个姓名）</li>
+                    <li>方式二：直接在下方文本框输入学员名字（每行一个）</li>
+                    <li>点击"开始抽奖"按钮，系统将随机滚动10秒后抽取幸运学员</li>
+                </ul>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label>📂 上传名单文件：</label>
+                    <div class="file-upload-wrapper">
+                        <label class="file-upload-btn">
+                            选择文件
+                            <input type="file" id="fileInput" accept=".txt">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>✏️ 或直接输入学员名单（每行一个名字）：</label>
+                    <textarea id="studentInput" placeholder="张三&#10;李四&#10;王五&#10;赵六&#10;陈七&#10;..."></textarea>
+                    <div class="student-count" id="studentCount">当前学员数：0</div>
+                </div>
+            </div>
+
+            <div class="lottery-area">
+                <div class="lottery-subtitle" id="subtitle">准备就绪，等待开始</div>
+                <div class="lottery-display" id="display">?</div>
+                <button class="start-btn" id="startBtn">开始抽奖</button>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let students = [];
+        let isRunning = false;
+        let intervalId = null;
+        let startTime = null;
+        const DURATION = 10000; // 10秒
+
+        const fileInput = document.getElementById('fileInput');
+        const studentInput = document.getElementById('studentInput');
+        const studentCount = document.getElementById('studentCount');
+        const display = document.getElementById('display');
+        const subtitle = document.getElementById('subtitle');
+        const startBtn = document.getElementById('startBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+
+        // 文件上传处理
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    studentInput.value = e.target.result;
+                    updateStudentList();
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // 文本输入处理
+        studentInput.addEventListener('input', updateStudentList);
+
+        function updateStudentList() {
+            const text = studentInput.value.trim();
+            students = text.split('\n')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            studentCount.textContent = `当前学员数：${students.length}`;
+            
+            if (students.length >= 5) {
+                startBtn.disabled = false;
+                subtitle.textContent = '准备就绪，等待开始';
+            } else {
+                startBtn.disabled = true;
+                subtitle.textContent = '至少需要5名学员才能开始抽奖';
+            }
+        }
+
+        // 开始抽奖（暗箱操作：必定抽中第5个人）
+        startBtn.addEventListener('click', function() {
+            if (students.length < 5) {
+                alert('至少需要5名学员才能开始抽奖！');
+                return;
+            }
+
+            if (isRunning) return;
+
+            isRunning = true;
+            startBtn.disabled = true;
+            subtitle.textContent = '抽奖进行中...';
+            progressBar.style.display = 'block';
+            progressFill.style.width = '0%';
+
+            // 🎯 暗箱操作核心：固定选择第5个人（索引为4）
+            const winner = students[4];
+
+            startTime = Date.now();
+            let currentIndex = 0;
+            let speed = 50; // 初始速度
+
+            // 制造"随机滚动"的假象
+            intervalId = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / DURATION, 1);
+                progressFill.style.width = (progress * 100) + '%';
+
+                // 显示看起来随机的学员名字（实际上只是视觉效果）
+                currentIndex = Math.floor(Math.random() * students.length);
+                display.textContent = students[currentIndex];
+
+                // 滚动速度逐渐减慢，增加真实感
+                if (elapsed > DURATION * 0.7) {
+                    clearInterval(intervalId);
+                    speed = 100;
+                    intervalId = setInterval(() => {
+                        const newElapsed = Date.now() - startTime;
+                        const newProgress = Math.min(newElapsed / DURATION, 1);
+                        progressFill.style.width = (newProgress * 100) + '%';
+                        
+                        currentIndex = Math.floor(Math.random() * students.length);
+                        display.textContent = students[currentIndex];
+                        
+                        if (newElapsed >= DURATION) {
+                            clearInterval(intervalId);
+                            // 🎯 最终显示第5个人
+                            display.textContent = winner;
+                            subtitle.textContent = '🎊 恭喜被抽中！🎊';
+                            isRunning = false;
+                            startBtn.disabled = false;
+                            progressBar.style.display = 'none';
+                            createConfetti();
+                        }
+                    }, speed);
+                }
+            }, speed);
+        });
+
+        // 创建彩带效果
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe'];
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.top = '-10px';
+                    confetti.style.opacity = '1';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    document.body.appendChild(confetti);
+
+                    const angle = Math.random() * 360;
+                    
+                    confetti.animate([
+                        { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+                        { transform: `translate(${Math.cos(angle) * 100}px, ${window.innerHeight}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                    ], {
+                        duration: 3000,
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    });
+
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 20);
+            }
+        }
+
+        // 初始化
+        updateStudentList();
+    </script>
+</body>
+</html>
